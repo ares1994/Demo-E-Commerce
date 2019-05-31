@@ -1,0 +1,33 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.example.android.aresse_commerce.MainActivity">
+
+    <group
+            android:checkableBehavior="single">
+
+        <item
+                android:id="@+id/action_home"
+                android:title="@string/action_home"
+                android:orderInCategory="100"
+                app:showAsAction="never"/>
+
+
+        <item android:id="@+id/action_settings"
+              android:title="@string/action_settings"
+              android:orderInCategory="101"
+              app:showAsAction="never"/>
+
+        <item android:id="@+id/action_search"
+              android:title="@string/action_search"
+              android:orderInCategory="102"
+              app:showAsAction="never"/>
+
+        <item android:id="@+id/action_admin"
+              android:title="@string/action_admin"
+              android:orderInCategory="103"
+              android:icon="@drawable/ic_playlist_add_black_24dp"
+              app:showAsAction="never"/>
+
+    </group>
+</menu>
