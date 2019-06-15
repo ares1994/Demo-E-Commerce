@@ -1,12 +1,17 @@
 package com.example.android.aresse_commerce
 
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.d
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,9 +19,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.android.aresse_commerce.database.AppDatabase
 import com.example.android.aresse_commerce.database.ProductDao
 import com.example.android.aresse_commerce.model.Product
+import com.example.android.aresse_commerce.repos.ProductsRepository
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
+import kotlinx.android.synthetic.main.product_row.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.support.v4.onUiThread
 import org.jetbrains.anko.support.v4.runOnUiThread
@@ -28,10 +35,31 @@ class MainFragment : Fragment() {
 
     private lateinit var dataSource: ProductDao
 
+    @SuppressLint("CheckResult")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val root = inflater.inflate(R.layout.fragment_main, container, false)
+
+        ProductsRepository().getAllProducts().subscribe({
+            root.recycler_view.layoutManager = GridLayoutManager(activity, 2)
+            root.recycler_view.adapter = ProductsAdapter(it) { title, productUrl, photoView ->
+
+                val intent = Intent(activity, ProductDetails::class.java)
+                intent.putExtra("name", title)
+                intent.putExtra("productUrl", productUrl)
+                val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    activity as AppCompatActivity,
+                    photoView,
+                    "photoToAnimate"
+                )
+                startActivity(intent, options.toBundle())
+
+
+            }
+            root.progressBar.visibility = View.GONE
+
+        }, { Log.d("Ares", "Eyah") })
 
         /*       doAsync {
                    val json = URL("https://www.finepointmobile.com/data/products.json").readText()
@@ -49,33 +77,33 @@ class MainFragment : Fragment() {
 
         val application = activity!!.applicationContext
 
+//
+//        doAsync {
+//            dataSource = AppDatabase.getInstance(application).productDatabaseDao
+////            dataSource.insertAll(DatabaseProduct(null, "Denim Jeans", 5.99))
+//
+//            val list = dataSource.getAll()
+//
+//            val products = list.map {
+//                Product(it.title, "https://finepointmobile.com/data/jeans2.jpg", it.price, true)
+//            }
+//            runOnUiThread {
+//
+//                d(
+//                    "Ares",
+//                    "Size of list of products in database are ${list.size}, Also first item is: ${list[0].title} "
+//                )
+//                root.recycler_view.apply {
+//                    layoutManager = GridLayoutManager(activity, 2)
+//                    adapter = ProductsAdapter(products)
+////                    root.progressBar.visibility = View.GONE
+//                }
+//                root.progressBar.visibility = View.GONE
+//            }
+//
+//
+//        }
 
-        doAsync {
-            dataSource = AppDatabase.getInstance(application).productDatabaseDao
-//            dataSource.insertAll(DatabaseProduct(null, "Denim Jeans", 5.99))
-
-            val list = dataSource.getAll()
-
-            val products = list.map {
-                Product(it.title, "https://finepointmobile.com/data/jeans2.jpg", it.price, true)
-            }
-            runOnUiThread {
-
-                d(
-                    "Ares",
-                    "Size of list of products in database are ${list.size}, Also first item is: ${list[0].title} "
-                )
-                root.recycler_view.apply {
-                    layoutManager = GridLayoutManager(activity, 2)
-                    adapter = ProductsAdapter(products)
-//                    root.progressBar.visibility = View.GONE
-                }
-            }
-
-
-        }
-
-        root.progressBar.visibility = View.GONE
 
         val categories =
             listOf("Socks", "Shoes", "Shirts", "Belts", "Jeans", "Suits", "Bags", "Perfumes", "Bonnets", "Pants")
@@ -92,23 +120,23 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        searchButton.setOnClickListener {
-            if (searchEditText.text.toString().isEmpty()) {
-                return@setOnClickListener
-            }
-            doAsync {
-                val searchedList = dataSource.searchFor("%${searchEditText.text}%")
-
-                val products = searchedList.map {
-                    Product(it.title, "https://finepointmobile.com/data/jeans2.jpg", it.price, true)
-                }
-
-                runOnUiThread {
-                    recycler_view.adapter = ProductsAdapter(products)
-                }
-            }
-
-
-        }
+//        searchButton.setOnClickListener {
+//            if (searchEditText.text.toString().isEmpty()) {
+//                return@setOnClickListener
+//            }
+//            doAsync {
+//                val searchedList = dataSource.searchFor("%${searchEditText.text}%")
+//
+//                val products = searchedList.map {
+//                    Product(it.title, "https://finepointmobile.com/data/jeans2.jpg", it.price, true)
+//                }
+//
+//                runOnUiThread {
+//                    recycler_view.adapter = ProductsAdapter(products)
+//                }
+//            }
+//
+//
+//        }
     }
 }

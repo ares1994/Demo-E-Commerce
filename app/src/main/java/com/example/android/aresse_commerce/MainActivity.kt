@@ -1,7 +1,9 @@
 package com.example.android.aresse_commerce
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.d
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +17,9 @@ import com.example.android.aresse_commerce.database.AppDatabase
 import com.example.android.aresse_commerce.database.DatabaseProduct
 import com.example.android.aresse_commerce.model.Product
 import com.google.android.material.navigation.NavigationView
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -22,10 +27,12 @@ import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.android.synthetic.main.main.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.startActivity
+import java.net.URL
 
 
 class MainActivity : AppCompatActivity() {
 
+    @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -34,21 +41,14 @@ class MainActivity : AppCompatActivity() {
         val application = requireNotNull(this).application
 
 
-        doAsync {
-            val dataSource = AppDatabase.getInstance(application).productDatabaseDao
-//            dataSource.insertAll(DatabaseProduct(null, "Denim Jeans", 5.99))
-
-            val list = dataSource.getAll()
-
-            runOnUiThread {
-                d(
-                    "Ares",
-                    "Size of list of products in database are ${list.size}, Also first item is: ${list[0].title} "
-                )
-            }
-
-
-        }
+        Observable.create<String> {
+            val json = URL("https://www.finepointmobile.com/data/products.json").readText()
+            it.onNext(json)
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Log.d("Ares", it)
+            }, { Log.d("Ares", "Error: Text not found") })
 
 
         supportFragmentManager.beginTransaction().replace(R.id.frameLayout, MainFragment()).commit()

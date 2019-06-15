@@ -8,20 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.android.aresse_commerce.model.Product
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.product_row.view.*
 
-class ProductsAdapter(private val products: List<Product>) : RecyclerView.Adapter<ProductsAdapter.ViewHolder>() {
+class ProductsAdapter(private val products: List<Product>, private val onCLickProduct : ( title: String, productUrl: String, photoView: View)-> Unit) : RecyclerView.Adapter<ProductsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductsAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.product_row, parent, false)
-        val holder = ViewHolder(view)
-        view.setOnClickListener {
-            val intent = Intent(parent.context, ProductDetails::class.java)
-            intent.putExtra("name", products[holder.adapterPosition].title)
-            intent.putExtra("productUrl", products[holder.adapterPosition].productUrl)
-            parent.context.startActivity(intent)
-        }
-        return holder
+        return ViewHolder(view)
     }
 
     override fun getItemCount() = products.size
@@ -33,6 +27,11 @@ class ProductsAdapter(private val products: List<Product>) : RecyclerView.Adapte
         holder.price.text = "\$${product.price}"
         if (product.isOnSale) {
             holder.isOnSaleImage.visibility = View.VISIBLE
+        }
+
+        holder.image.setOnClickListener {
+//
+            onCLickProduct.invoke(product.title, product.productUrl,holder.image)
         }
     }
 
