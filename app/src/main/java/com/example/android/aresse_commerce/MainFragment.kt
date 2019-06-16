@@ -39,44 +39,72 @@ class MainFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        val root = inflater.inflate(R.layout.fragment_main, container, false)
+        return inflater.inflate(R.layout.fragment_main, container, false)
+    }
 
+    @SuppressLint("CheckResult")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         ProductsRepository().getAllProducts().subscribe({
-            root.recycler_view.layoutManager = GridLayoutManager(activity, 2)
-            root.recycler_view.adapter = ProductsAdapter(it) { title, productUrl, photoView ->
-
-                val intent = Intent(activity, ProductDetails::class.java)
-                intent.putExtra("name", title)
-                intent.putExtra("productUrl", productUrl)
-                val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    activity as AppCompatActivity,
-                    photoView,
-                    "photoToAnimate"
-                )
-                startActivity(intent, options.toBundle())
-
-
-            }
-            root.progressBar.visibility = View.GONE
-
+            reloadRecyclerView(it)
         }, { Log.d("Ares", "Eyah") })
 
-        /*       doAsync {
-                   val json = URL("https://www.finepointmobile.com/data/products.json").readText()
+        val categories =
+            listOf("Socks", "Shoes", "Shirts", "Belts", "Jeans", "Suits", "Bags", "Perfumes", "Bonnets", "Pants")
 
-                   runOnUiThread {
-                       val products = Gson().fromJson(json, Array<Product>::class.java).toList()
-                       root.recycler_view.apply {
-                           layoutManager = GridLayoutManager(activity, 2)
-                           adapter = ProductsAdapter(products)
-                           root.progressBar.visibility = View.GONE
-                       }
+        categoriesRecyclerView.apply {
+            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
+            adapter = CategoriesAdapter(categories)
+        }
 
-                   }
-               }           */
+        searchButton.setOnClickListener {
+            if (searchEditText.text.toString().isEmpty()) {
+                return@setOnClickListener
+            }
+            ProductsRepository().searchProducts(searchEditText.text.toString().trim()).subscribe({
+                reloadRecyclerView(it)
+            }, {})
+        }
 
-        val application = activity!!.applicationContext
+    }
 
+    private fun reloadRecyclerView(it: List<Product>) {
+        recycler_view.layoutManager = GridLayoutManager(activity, 2)
+        recycler_view.adapter = ProductsAdapter(it) { title, productUrl, photoView ->
+
+            val intent = Intent(activity, ProductDetails::class.java)
+            intent.putExtra("name", title)
+            intent.putExtra("productUrl", productUrl)
+            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                activity as AppCompatActivity,
+                photoView,
+                "photoToAnimate"
+            )
+            startActivity(intent, options.toBundle())
+
+
+        }
+        progressBar.visibility = View.GONE
+    }
+}
+
+
+/*       doAsync {
+           val json = URL("https://www.finepointmobile.com/data/products.json").readText()
+
+           runOnUiThread {
+               val products = Gson().fromJson(json, Array<Product>::class.java).toList()
+               root.recycler_view.apply {
+                   layoutManager = GridLayoutManager(activity, 2)
+                   adapter = ProductsAdapter(products)
+                   root.progressBar.visibility = View.GONE
+               }
+
+           }
+       }           */
+
+//val application = activity!!.applicationContext
+//
 //
 //        doAsync {
 //            dataSource = AppDatabase.getInstance(application).productDatabaseDao
@@ -105,25 +133,6 @@ class MainFragment : Fragment() {
 //        }
 
 
-        val categories =
-            listOf("Socks", "Shoes", "Shirts", "Belts", "Jeans", "Suits", "Bags", "Perfumes", "Bonnets", "Pants")
-
-        root.categoriesRecyclerView.apply {
-            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
-            adapter = CategoriesAdapter(categories)
-        }
-
-
-        return root
-
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-//        searchButton.setOnClickListener {
-//            if (searchEditText.text.toString().isEmpty()) {
-//                return@setOnClickListener
-//            }
 //            doAsync {
 //                val searchedList = dataSource.searchFor("%${searchEditText.text}%")
 //
@@ -137,6 +146,3 @@ class MainFragment : Fragment() {
 //            }
 //
 //
-//        }
-    }
-}
