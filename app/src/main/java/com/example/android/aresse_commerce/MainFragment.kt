@@ -6,11 +6,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.util.Log.d
+import android.view.*
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -31,14 +30,25 @@ import org.jetbrains.anko.support.v4.uiThread
 import java.net.URL
 
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), SearchView.OnQueryTextListener {
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return false
+    }
 
-    private lateinit var dataSource: ProductDao
+    @SuppressLint("CheckResult")
+    override fun onQueryTextChange(newText: String?): Boolean {
+        ProductsRepository().searchProducts(newText as String).subscribe({
+            reloadRecyclerView(it)
+        },{})
+        return false
+    }
+
 
     @SuppressLint("CheckResult")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+        setHasOptionsMenu(true)
         return inflater.inflate(R.layout.fragment_main, container, false)
     }
 
@@ -57,14 +67,14 @@ class MainFragment : Fragment() {
             adapter = CategoriesAdapter(categories)
         }
 
-        searchButton.setOnClickListener {
-            if (searchEditText.text.toString().isEmpty()) {
-                return@setOnClickListener
-            }
-            ProductsRepository().searchProducts(searchEditText.text.toString().trim()).subscribe({
-                reloadRecyclerView(it)
-            }, {})
-        }
+//        searchButton.setOnClickListener {
+//            if (searchEditText.text.toString().isEmpty()) {
+//                return@setOnClickListener
+//            }
+//            ProductsRepository().searchProducts(searchEditText.text.toString().trim()).subscribe({
+//                reloadRecyclerView(it)
+//            }, {})
+//        }
 
     }
 
@@ -86,6 +96,15 @@ class MainFragment : Fragment() {
         }
         progressBar.visibility = View.GONE
     }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_main_fragment,menu)
+        val menuItem = menu.findItem(R.id.app_bar_search)
+        val searchView = menuItem.actionView as SearchView
+        searchView.setOnQueryTextListener(this)
+    }
+
+
 }
 
 
